@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#050d20"><title>星屑圣诞树 · Stardust Christmas</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#030817;color:#eef8ff;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC",sans-serif}
+#scene{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:pan-y}
+.vignette{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 35%,#0006 100%)}
+.top{position:fixed;top:25px;left:4vw;right:4vw;display:flex;justify-content:space-between;z-index:2;pointer-events:none;font-size:10px;letter-spacing:.23em;color:#b8d2e8}
+.brand:before{content:"";display:inline-block;width:7px;height:7px;margin-right:10px;border-radius:50%;background:#d7f7ff;box-shadow:0 0 13px 4px #8bdcff}
+.hero{position:fixed;top:13%;left:0;right:0;text-align:center;z-index:2;pointer-events:none}
+.eyebrow{font-size:10px;letter-spacing:.48em;color:#a5cce8;margin-bottom:13px}
+h1{font-size:clamp(21px,3vw,35px);font-weight:300;letter-spacing:.17em;margin:0;text-shadow:0 0 25px #a8e6ff66}
+.sub{font-size:11px;letter-spacing:.14em;color:#9eb7d0;margin-top:12px}
+.bottom{position:fixed;bottom:max(22px,env(safe-area-inset-bottom));left:0;right:0;z-index:4;display:flex;align-items:center;flex-direction:column;gap:12px;padding:0 12px}
+.controls{display:flex;justify-content:center;flex-wrap:wrap;gap:8px}
+button,.music{border:1px solid #b2ddff55;border-radius:99px;background:#0b1d35b8;backdrop-filter:blur(15px);color:#e9f8ff;padding:11px 17px;font-size:11px;letter-spacing:.06em;cursor:pointer;text-decoration:none;transition:.2s}
+button:hover,.music:hover{background:#1a3856c9;border-color:#c9efff;transform:translateY(-1px)}
+.primary{background:#8cc9ec30;border-color:#c9efff88}
+button:disabled{opacity:.5;cursor:wait}
+.hint,.privacy{font-size:10px;color:#91abc6;letter-spacing:.05em;text-align:center}
+.privacy{font-size:9px;color:#718ba8;max-width:580px}
+.musicrow{display:flex;align-items:center;gap:10px}.musiclabel{font-size:10px;color:#93aec9}
+.camera{position:fixed;right:18px;bottom:18px;width:130px;display:none;z-index:5;border:1px solid #b2ddff55;border-radius:12px;overflow:hidden;background:#061226}
+.camera.show{display:block}video{display:block;width:100%;transform:scaleX(-1)}.camlabel{font-size:9px;padding:6px 8px;color:#c6deef}
+.toast{position:fixed;top:75px;left:50%;transform:translateX(-50%);z-index:8;padding:9px 14px;border:1px solid #b2ddff44;border-radius:99px;background:#06152be8;color:#e7f7ff;font-size:11px;opacity:0;transition:.2s;pointer-events:none}.toast.show{opacity:1}
+@media(max-width:600px){.top{top:17px}.top .right{display:none}.hero{top:11%}.bottom{bottom:16px}.camera{width:100px;right:8px;bottom:8px}button,.music{padding:10px 13px;font-size:10px}.controls{gap:6px}}
+</style></head><body>
+<canvas id="scene"></canvas><div class="vignette"></div>
+<header class="top"><div class="brand">STARDUST · CHRISTMAS</div><div class="right">A LITTLE MAGIC IN THE WINTER NIGHT</div></header>
+<section class="hero"><div class="eyebrow">MERRY CHRISTMAS</div><h1>把星光，聚成一棵树</h1><div class="sub">让指尖唤醒冬夜里的奇迹</div></section>
+<div class="toast" id="toast"></div>
+<div class="camera" id="cameraBox"><video id="video" autoplay playsinline muted></video><div class="camlabel" id="camLabel">HAND TRACKING</div></div>
+<footer class="bottom">
+<div class="controls"><button class="primary" id="cameraBtn">开启手势</button><button id="scatter">星光散开</button><button id="gather">聚合成树</button><button id="reset">重置视角</button></div>
+<div class="hint" id="status">拖动鼠标旋转 · 点击按钮体验粒子变化</div>
+<div class="musicrow"><span class="musiclabel">今夜的背景音乐</span><a class="music" href="https://163cn.tv/blhNxDl5" target="_blank" rel="noopener">♫ 在网易云听 TINY7《浆果》</a></div>
+<div class="privacy">摄像头仅在你点击「开启手势」并授权后启动；识别在浏览器中进行。也可用鼠标拖动旋转。</div>
+</footer>
+<script>
+const canvas=document.getElementById('scene'),ctx=canvas.getContext('2d',{alpha:false}),video=document.getElementById('video');
+const $=id=>document.getElementById(id);
+let W=0,H=0,D=1,pts=[],stars=[],snow=[],spread=0,targetSpread=0,rot=0,targetRot=0,drag=false,lastX=0,tracker=null,stream=null,active=false,lastVideo=-1;
+const rnd=(a,b)=>a+Math.random()*(b-a);
+function say(s){$('status').textContent=s}
+function toast(s){$('toast').textContent=s;$('toast').classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>$('toast').classList.remove('show'),2600)}
+function atmos(){stars=Array.from({length:Math.min(280,Math.floor(W*H/6000))},()=>({x:Math.random()*W,y:Math.random()*H,r:rnd(.3,1.3),a:rnd(.18,.7),p:rnd(0,7)}));snow=Array.from({length:Math.min(110,Math.floor(W/9))},()=>({x:Math.random()*W,y:Math.random()*H,r:rnd(.4,1.4),v:rnd(.12,.5),d:rnd(-.16,.16),a:rnd(.1,.42)}))}
+function resize(){W=innerWidth;H=innerHeight;D=Math.min(2.25,Math.max(1,devicePixelRatio||1));canvas.width=Math.round(W*D);canvas.height=Math.round(H*D);ctx.setTransform(D,0,0,D,0,0);atmos();makeTree()}
+function makeTree(){pts=[];let n=Math.min(4200,Math.max(1900,Math.floor(W*H/380)));for(let i=0;i<n;i++){let y=rnd(-1,1),r=(1-y)*.48*Math.sqrt(Math.random()),a=rnd(0,Math.PI*2),x=Math.cos(a)*r,z=Math.sin(a)*r,tw=Math.random()<.28;let q=rnd(0,Math.PI*2),sr=rnd(1,2.6);pts.push({x:x*(tw?1.12:1),y:y*1.52,z:z*(tw?1.12:1),sx:Math.cos(q)*sr,sy:rnd(-1.5,1.5),sz:Math.sin(q)*sr,size:rnd(.45,1.3),h:rnd(188,209),a:rnd(.35,.95),p:rnd(0,7),v:rnd(.5,1.7),gar:false})}for(let i=0;i<600;i++){let u=i/600,a=u*Math.PI*2*7.2,y=.92-u*1.82,r=(1-u)*.5,x=Math.cos(a)*r,z=Math.sin(a)*r;pts.push({x,y,z,sx:rnd(-2,2),sy:rnd(-1,2),sz:rnd(-2,2),size:rnd(.65,1.4),h:rnd(188,205),a:rnd(.55,1),p:rnd(0,7),v:rnd(.7,1.6),gar:true})}}
+function project(p){let c=Math.cos(rot),s=Math.sin(rot),x=p.x*c-p.z*s,z=p.x*s+p.z*c,dep=3.2+z,sc=Math.min(W,H)*.43/dep;return{x:W*.5+x*sc,y:H*.54+p.y*sc,sc,dep}}
+function bg(t){let g=ctx.createRadialGradient(W*.5,H*.45,0,W*.5,H*.45,Math.max(W,H)*.8);g.addColorStop(0,'#142e4b');g.addColorStop(.45,'#091a32');g.addColorStop(1,'#020714');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);for(let s of stars){ctx.fillStyle=`rgba(215,239,255,${s.a*(.7+.3*Math.sin(t*.001+s.p))})`;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,7);ctx.fill()}for(let f of snow){f.y+=f.v;f.x+=f.d+Math.sin(t*.0007+f.y*.01)*.1;if(f.y>H+4){f.y=-4;f.x=Math.random()*W}ctx.fillStyle=`rgba(218,239,255,${f.a})`;ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,7);ctx.fill()}}
+function orbit(t){ctx.save();ctx.translate(W*.5,H*.56);ctx.rotate(-.13+Math.sin(t*.0002)*.03);let r=Math.min(W,H)*.38;for(let i=0;i<3;i++){ctx.beginPath();ctx.ellipse(0,0,r*(1+i*.09),r*.27*(1+i*.13),i*.13,Math.PI*1.02,Math.PI*2.03);ctx.strokeStyle=`rgba(160,216,250,${.12-i*.025})`;ctx.lineWidth=i? .7:1;ctx.shadowColor='#8bdcff';ctx.shadowBlur=10;ctx.stroke()}ctx.restore();ctx.shadowBlur=0}
+function topper(t){let x=W*.5,y=H*.54-Math.min(W,H)*.43*.52,r=Math.min(W,H)*.023;let gr=ctx.createRadialGradient(x,y,0,x,y,r*5);gr.addColorStop(0,'#fff');gr.addColorStop(.2,'#bceeff88');gr.addColorStop(1,'#8bdcff00');ctx.fillStyle=gr;ctx.beginPath();ctx.arc(x,y,r*5,0,7);ctx.fill();ctx.save();ctx.translate(x,y);ctx.rotate(t*.00015);ctx.beginPath();for(let i=0;i<10;i++){let a=-Math.PI/2+i*Math.PI/5,rr=i%2?r*.35:r;ctx.lineTo(Math.cos(a)*rr,Math.sin(a)*rr)}ctx.closePath();ctx.fillStyle='#f2fcff';ctx.shadowColor='#b9edff';ctx.shadowBlur=20;ctx.fill();ctx.restore();ctx.shadowBlur=0}
+function frame(t){spread+=(targetSpread-spread)*.055;rot+=(targetRot-rot)*.045;bg(t);orbit(t);let list=[];for(let p of pts){let w=Math.sin(t*.001*p.v+p.p)*.012,x=p.x+(p.sx-p.x)*spread,y=p.y+(p.sy-p.y)*spread,z=p.z+(p.sz-p.z)*spread;list.push({p,q:project({x:x+w,y,z:z+w}),tw:Math.sin(t*.0014*p.v+p.p)})}list.sort((a,b)=>b.q.dep-a.q.dep);for(let o of list){let p=o.p,q=o.q;ctx.fillStyle=`hsla(${p.h},${p.gar?92:74}%,${p.gar?90:82}%,${p.a*(.76+.24*o.tw)})`;ctx.shadowColor='#bdeaff';ctx.shadowBlur=p.gar?8:4;ctx.beginPath();ctx.arc(q.x,q.y,Math.max(.35,p.size*q.sc*.012),0,7);ctx.fill()}ctx.shadowBlur=0;topper(t);requestAnimationFrame(frame)}
+function setSpread(v){targetSpread=v;say(v?'星光正在向宇宙散开':'星光正在重新聚合')}
+$('scatter').onclick=()=>setSpread(1);$('gather').onclick=()=>setSpread(0);$('reset').onclick=()=>{targetRot=0;rot=0;setSpread(0);toast('视角已重置')};
+canvas.addEventListener('pointerdown',e=>{drag=true;lastX=e.clientX;canvas.setPointerCapture(e.pointerId)});canvas.addEventListener('pointermove',e=>{if(drag){targetRot+=(e.clientX-lastX)*.006;lastX=e.clientX}});canvas.addEventListener('pointerup',()=>drag=false);canvas.addEventListener('pointercancel',()=>drag=false);
+const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+function onHand(res){let lm=res.landmarks&&res.landmarks[0];if(!lm)return;let pinch=dist(lm[4],lm[8])<.055,up=[lm[8].y<lm[6].y,lm[12].y<lm[10].y,lm[16].y<lm[14].y,lm[20].y<lm[18].y].filter(Boolean).length>=3;targetRot=(.5-lm[9].x)*1.9;if(pinch){setSpread(0);$('camLabel').textContent='捏合 · 聚合成树'}else if(up){setSpread(1);$('camLabel').textContent='张开手掌 · 星光散开'}else $('camLabel').textContent='移动手掌 · 旋转圣诞树'}
+async function runTracking(){if(!active||!tracker)return;if(video.currentTime!==lastVideo){lastVideo=video.currentTime;onHand(tracker.detectForVideo(video,performance.now()))}requestAnimationFrame(runTracking)}
+async function startCamera(){let b=$('cameraBtn');b.disabled=true;b.textContent='正在启动…';say('正在加载手势识别…');try{const mp=await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14');const vision=await mp.FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm');tracker=await mp.HandLandmarker.createFromOptions(vision,{baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',delegate:'GPU'},runningMode:'VIDEO',numHands:1});stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:640},height:{ideal:480}},audio:false});video.srcObject=stream;await video.play();active=true;$('cameraBox').classList.add('show');b.disabled=false;b.textContent='关闭手势';say('手势已开启：张手散开 · 捏合聚合 · 左右移动旋转');requestAnimationFrame(runTracking)}catch(e){console.error(e);if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;b.disabled=false;b.textContent='重试开启手势';say('手势启动失败；请检查摄像头权限和网络，鼠标控制仍可用');toast(e.name==='NotAllowedError'?'请在 Chrome 地址栏允许摄像头权限':'模型加载失败，请检查网络后重试')}}
+function stopCamera(){active=false;if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;video.srcObject=null;$('cameraBox').classList.remove('show');$('cameraBtn').textContent='开启手势';setSpread(0);say('手势已关闭 · 可拖动鼠标旋转')}
+$('cameraBtn').onclick=()=>active?stopCamera():startCamera();
+addEventListener('resize',resize);resize();requestAnimationFrame(frame);
+</script></body></html>
