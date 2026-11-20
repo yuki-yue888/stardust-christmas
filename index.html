@@ -56,7 +56,7 @@ const canvas=document.getElementById('universe');
 const ctx=canvas.getContext('2d',{alpha:false});
 const $=id=>document.getElementById(id);
 const video=$('camera');
-let W=0,H=0,DPR=1,tree=[],orbits=[],dust=[],stars=[],snow=[],nebula=[];
+let W=0,H=0,DPR=1,tree=[],garland=[],orbits=[],dust=[],stars=[],snow=[],nebula=[];
 let rotation=0,targetRotation=0,spread=0,targetSpread=0,dragging=false,lastX=0;
 let handLandmarker=null,cameraStream=null,tracking=false,lastVideoTime=-1,frameHandle=0;
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -116,7 +116,7 @@ function makeAtmosphere(){
   }));
 }
 function makeTree(){
-  tree=[];
+  tree=[];garland=[];
   const count=Math.round(clamp(W*H/118,6200,11200));
   for(let i=0;i<count;i++){
     const surface=i%5!==0;
@@ -141,6 +141,26 @@ function makeTree(){
         scatterX:rand(-2,2),scatterY:rand(-1.5,1.5),scatterZ:rand(-2,2),
         size:rand(.55,1.05),hue:rand(190,207),alpha:rand(.48,.95),phase:rand(0,7),speed:rand(.8,1.5),spark:Math.random()<.12,surface:true});
     }
+  }
+
+  // A fine spiral light strand winds from the upper branches toward the foot.
+  const lightCount=680;
+  for(let i=0;i<=lightCount;i++){
+    const u=i/lightCount;
+    const h=.055+.91*u;
+    const angle=u*Math.PI*2*5.25;
+    const r=.79*Math.pow(h,.92)*1.035;
+    const x=Math.cos(angle)*r,z=Math.sin(angle)*r,y=-1.12+h*2.08;
+    garland.push({
+      x,y,z,r,angle,h,
+      bulb:i%10===0,
+      phase:rand(0,Math.PI*2),
+      intensity:rand(.72,1),
+      scatterX:Math.cos(angle*1.7)*rand(1.2,2.1),
+      scatterY:rand(-1.1,1.1),
+      scatterZ:Math.sin(angle*1.7)*rand(1.2,2.1),
+      tint:Math.random()<.14?'pearl-warm':Math.random()<.22?'ice-blue':'pearl'
+    });
   }
 }
 function makeOrbit(){
@@ -302,6 +322,55 @@ function drawTree(t){
   }
   ctx.restore();
 }
+function drawGarland(t){
+  if(!garland.length)return;
+  const points=[];
+  for(const p of garland){
+    const angle=p.angle+rotation+t*.000018;
+    const wobble=1+Math.sin(t*.0007+p.phase)*.002;
+    const x=Math.cos(angle)*p.r*wobble+(p.scatterX-p.x)*spread*.32;
+    const y=p.y+(p.scatterY-p.y)*spread*.32;
+    const z=Math.sin(angle)*p.r*wobble+(p.scatterZ-p.z)*spread*.32;
+    points.push(project(x,y,z));
+  }
+
+  // The strand itself is a thin, softly glowing filament, not a neon ribbon.
+  ctx.save();
+  ctx.globalCompositeOperation='lighter';
+  ctx.beginPath();
+  points.forEach((q,i)=>{if(i===0)ctx.moveTo(q.x,q.y);else ctx.lineTo(q.x,q.y);});
+  ctx.strokeStyle='rgba(176,222,255,.12)';
+  ctx.lineWidth=2.1;
+  ctx.shadowColor='rgba(168,220,255,.34)';
+  ctx.shadowBlur=5;
+  ctx.stroke();
+
+  ctx.beginPath();
+  points.forEach((q,i)=>{if(i===0)ctx.moveTo(q.x,q.y);else ctx.lineTo(q.x,q.y);});
+  ctx.strokeStyle='rgba(222,242,255,.48)';
+  ctx.lineWidth=.62;
+  ctx.shadowBlur=1.5;
+  ctx.stroke();
+
+  // Tiny bulbs sit at regular intervals, with restrained natural variation in color and glow.
+  for(let i=0;i<garland.length;i++){
+    const p=garland[i];
+    if(!p.bulb)continue;
+    const q=points[i];
+    const pulse=.82+.18*(.5+.5*Math.sin(t*.0014+p.phase));
+    const radius=1.05*p.intensity*pulse;
+    const color=p.tint==='pearl-warm'?'255,235,207':p.tint==='ice-blue'?'190,229,255':'238,249,255';
+    const glow=ctx.createRadialGradient(q.x,q.y,0,q.x,q.y,5.4*radius);
+    glow.addColorStop(0,'rgba('+color+',.38)');
+    glow.addColorStop(.24,'rgba('+color+',.16)');
+    glow.addColorStop(1,'rgba('+color+',0)');
+    ctx.fillStyle=glow;
+    ctx.beginPath();ctx.arc(q.x,q.y,5.4*radius,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba('+color+','+(.72+.22*pulse)+')';
+    ctx.beginPath();ctx.arc(q.x,q.y,radius*.62,0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();
+}
 function drawTopStar(t){
   const p=project(0,-1.18,0),x=p.x,y=p.y-2.5;
   const pulse=.94+.06*Math.sin(t*.00115);
@@ -369,7 +438,7 @@ function drawTopStar(t){
 }
 function render(t){
   spread+=(targetSpread-spread)*.045;rotation+=(targetRotation-rotation)*.035;
-  drawBackground(t);drawOrbit(t);drawTree(t);drawTopStar(t);
+  drawBackground(t);drawOrbit(t);drawTree(t);drawGarland(t);drawTopStar(t);
   frameHandle=requestAnimationFrame(render);
 }
 function setSpread(value){targetSpread=value;setStatus(value?'星尘正在散向星空':'星尘正在聚合成树',true);}
