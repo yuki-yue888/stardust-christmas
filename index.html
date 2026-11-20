@@ -1,65 +1,235 @@
 <!doctype html>
-<html lang="zh-CN"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#050d20"><title>星屑圣诞树 · Stardust Christmas</title>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#020817">
+<title>Merry Christmas · 星尘圣诞树</title>
 <style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#030817;color:#eef8ff;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC",sans-serif}
-#scene{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:pan-y}
-.vignette{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 35%,#0006 100%)}
-.top{position:fixed;top:25px;left:4vw;right:4vw;display:flex;justify-content:space-between;z-index:2;pointer-events:none;font-size:10px;letter-spacing:.23em;color:#b8d2e8}
-.brand:before{content:"";display:inline-block;width:7px;height:7px;margin-right:10px;border-radius:50%;background:#d7f7ff;box-shadow:0 0 13px 4px #8bdcff}
-.hero{position:fixed;top:13%;left:0;right:0;text-align:center;z-index:2;pointer-events:none}
-.eyebrow{font-size:10px;letter-spacing:.48em;color:#a5cce8;margin-bottom:13px}
-h1{font-size:clamp(21px,3vw,35px);font-weight:300;letter-spacing:.17em;margin:0;text-shadow:0 0 25px #a8e6ff66}
-.sub{font-size:11px;letter-spacing:.14em;color:#9eb7d0;margin-top:12px}
-.bottom{position:fixed;bottom:max(22px,env(safe-area-inset-bottom));left:0;right:0;z-index:4;display:flex;align-items:center;flex-direction:column;gap:12px;padding:0 12px}
-.controls{display:flex;justify-content:center;flex-wrap:wrap;gap:8px}
-button,.music{border:1px solid #b2ddff55;border-radius:99px;background:#0b1d35b8;backdrop-filter:blur(15px);color:#e9f8ff;padding:11px 17px;font-size:11px;letter-spacing:.06em;cursor:pointer;text-decoration:none;transition:.2s}
-button:hover,.music:hover{background:#1a3856c9;border-color:#c9efff;transform:translateY(-1px)}
-.primary{background:#8cc9ec30;border-color:#c9efff88}
-button:disabled{opacity:.5;cursor:wait}
-.hint,.privacy{font-size:10px;color:#91abc6;letter-spacing:.05em;text-align:center}
-.privacy{font-size:9px;color:#718ba8;max-width:580px}
-.musicrow{display:flex;align-items:center;gap:10px}.musiclabel{font-size:10px;color:#93aec9}
-.camera{position:fixed;right:18px;bottom:18px;width:130px;display:none;z-index:5;border:1px solid #b2ddff55;border-radius:12px;overflow:hidden;background:#061226}
-.camera.show{display:block}video{display:block;width:100%;transform:scaleX(-1)}.camlabel{font-size:9px;padding:6px 8px;color:#c6deef}
-.toast{position:fixed;top:75px;left:50%;transform:translateX(-50%);z-index:8;padding:9px 14px;border:1px solid #b2ddff44;border-radius:99px;background:#06152be8;color:#e7f7ff;font-size:11px;opacity:0;transition:.2s;pointer-events:none}.toast.show{opacity:1}
-@media(max-width:600px){.top{top:17px}.top .right{display:none}.hero{top:11%}.bottom{bottom:16px}.camera{width:100px;right:8px;bottom:8px}button,.music{padding:10px 13px;font-size:10px}.controls{gap:6px}}
-</style></head><body>
-<canvas id="scene"></canvas><div class="vignette"></div>
-<header class="top"><div class="brand">STARDUST · CHRISTMAS</div><div class="right">A LITTLE MAGIC IN THE WINTER NIGHT</div></header>
-<section class="hero"><div class="eyebrow">MERRY CHRISTMAS</div><h1>把星光，聚成一棵树</h1><div class="sub">让指尖唤醒冬夜里的奇迹</div></section>
+:root{color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#020714;color:#eaf7ff;font-family:Georgia,"Times New Roman","Songti SC",serif}
+#universe{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#universe:active{cursor:grabbing}
+.shade{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 48%,transparent 35%,rgba(0,3,14,.2) 72%,rgba(0,2,10,.58) 100%)}
+.greeting{position:fixed;z-index:2;top:10.5%;left:0;right:0;text-align:center;pointer-events:none;color:#e9f7ff;font-size:clamp(17px,2.2vw,29px);font-weight:400;letter-spacing:.19em;text-shadow:0 0 8px #d8f6ff,0 0 22px #91dfff,0 0 40px #5bb9ef;white-space:nowrap}
+.greeting span{display:inline-block;transform:scaleX(.96)}
+.controls{position:fixed;z-index:5;left:50%;bottom:max(26px,env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;align-items:center;gap:9px;padding:7px 11px;border:1px solid rgba(177,221,255,.13);border-radius:30px;background:rgba(5,16,34,.3);backdrop-filter:blur(8px);opacity:.78;transition:opacity .25s,border-color .25s}
+.controls:hover{opacity:1;border-color:rgba(177,221,255,.34)}
+.control{width:32px;height:32px;border:1px solid rgba(194,230,255,.32);border-radius:50%;display:grid;place-items:center;background:rgba(113,166,210,.12);color:#e5f7ff;font:14px/1 -apple-system,BlinkMacSystemFont,sans-serif;cursor:pointer;box-shadow:0 0 13px rgba(137,210,255,.09);transition:.2s}
+.control:hover,.control.active{background:rgba(157,218,255,.28);box-shadow:0 0 18px rgba(137,210,255,.3);border-color:rgba(220,246,255,.72)}
+.control:disabled{opacity:.45;cursor:wait}
+.separator{height:19px;width:1px;background:rgba(185,222,255,.2);margin:0 1px}
+.status{position:fixed;z-index:4;bottom:max(72px,calc(env(safe-area-inset-bottom) + 68px));left:0;right:0;text-align:center;color:rgba(196,224,246,.62);font:10px/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;letter-spacing:.12em;pointer-events:none;opacity:0;transition:opacity .3s}
+.status.show{opacity:1}
+.camera-box{position:fixed;z-index:6;right:16px;bottom:16px;width:126px;display:none;overflow:hidden;border:1px solid rgba(180,224,255,.3);border-radius:12px;background:#061326;box-shadow:0 8px 26px #0008}
+.camera-box.show{display:block}
+.camera-box video{display:block;width:100%;transform:scaleX(-1)}
+.camera-caption{padding:6px 8px;color:#c5e5fa;font:9px -apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:.08em}
+.music-link{position:fixed;right:22px;top:22px;z-index:5;color:rgba(195,222,244,.62);font:10px -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;letter-spacing:.08em;text-decoration:none;transition:.2s}
+.music-link:hover{color:#effaff;text-shadow:0 0 12px #a8e7ff}
+.toast{position:fixed;z-index:8;top:20px;left:50%;transform:translateX(-50%);padding:9px 14px;border:1px solid rgba(180,224,255,.2);border-radius:20px;background:rgba(3,13,29,.88);color:#e7f6ff;font:11px -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;opacity:0;pointer-events:none;transition:opacity .25s}
+.toast.show{opacity:1}
+@media(max-width:600px){.greeting{top:9%;font-size:17px}.music-link{top:17px;right:14px;font-size:9px}.controls{bottom:max(18px,env(safe-area-inset-bottom));gap:7px}.control{width:30px;height:30px}.status{bottom:max(62px,calc(env(safe-area-inset-bottom) + 58px))}.camera-box{width:98px;right:8px;bottom:8px}}
+@media(prefers-reduced-motion:reduce){.controls,.status{transition:none}}
+</style>
+</head>
+<body>
+<canvas id="universe" aria-label="银白色星尘粒子圣诞树与环绕星环"></canvas>
+<div class="shade"></div>
+<div class="greeting"><span>MERRY CHRISTMAS</span></div>
+<a class="music-link" href="https://163cn.tv/blhNxDl5" target="_blank" rel="noopener noreferrer">♫ TINY7 · 浆果</a>
 <div class="toast" id="toast"></div>
-<div class="camera" id="cameraBox"><video id="video" autoplay playsinline muted></video><div class="camlabel" id="camLabel">HAND TRACKING</div></div>
-<footer class="bottom">
-<div class="controls"><button class="primary" id="cameraBtn">开启手势</button><button id="scatter">星光散开</button><button id="gather">聚合成树</button><button id="reset">重置视角</button></div>
-<div class="hint" id="status">拖动鼠标旋转 · 点击按钮体验粒子变化</div>
-<div class="musicrow"><span class="musiclabel">今夜的背景音乐</span><a class="music" href="https://163cn.tv/blhNxDl5" target="_blank" rel="noopener">♫ 在网易云听 TINY7《浆果》</a></div>
-<div class="privacy">摄像头仅在你点击「开启手势」并授权后启动；识别在浏览器中进行。也可用鼠标拖动旋转。</div>
-</footer>
+<div class="camera-box" id="cameraBox"><video id="camera" autoplay playsinline muted></video><div class="camera-caption" id="cameraCaption">HAND TRACKING</div></div>
+<div class="status" id="status" aria-live="polite">张开手掌：星尘散开　·　拇指食指捏合：聚合　·　左右移动：旋转</div>
+<div class="controls" aria-label="圣诞树控制">
+  <button class="control" id="handButton" title="开启手势控制" aria-label="开启手势控制">✋</button>
+  <button class="control" id="scatterButton" title="星尘散开" aria-label="星尘散开">✧</button>
+  <button class="control" id="gatherButton" title="聚合成树" aria-label="聚合成树">✦</button>
+  <span class="separator"></span>
+  <button class="control" id="musicButton" title="在网易云音乐听浆果" aria-label="在网易云音乐听浆果">♫</button>
+</div>
 <script>
-const canvas=document.getElementById('scene'),ctx=canvas.getContext('2d',{alpha:false}),video=document.getElementById('video');
+(()=>{
+'use strict';
+const canvas=document.getElementById('universe');
+const ctx=canvas.getContext('2d',{alpha:false});
 const $=id=>document.getElementById(id);
-let W=0,H=0,D=1,pts=[],stars=[],snow=[],spread=0,targetSpread=0,rot=0,targetRot=0,drag=false,lastX=0,tracker=null,stream=null,active=false,lastVideo=-1;
-const rnd=(a,b)=>a+Math.random()*(b-a);
-function say(s){$('status').textContent=s}
-function toast(s){$('toast').textContent=s;$('toast').classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>$('toast').classList.remove('show'),2600)}
-function atmos(){stars=Array.from({length:Math.min(280,Math.floor(W*H/6000))},()=>({x:Math.random()*W,y:Math.random()*H,r:rnd(.3,1.3),a:rnd(.18,.7),p:rnd(0,7)}));snow=Array.from({length:Math.min(110,Math.floor(W/9))},()=>({x:Math.random()*W,y:Math.random()*H,r:rnd(.4,1.4),v:rnd(.12,.5),d:rnd(-.16,.16),a:rnd(.1,.42)}))}
-function resize(){W=innerWidth;H=innerHeight;D=Math.min(2.25,Math.max(1,devicePixelRatio||1));canvas.width=Math.round(W*D);canvas.height=Math.round(H*D);ctx.setTransform(D,0,0,D,0,0);atmos();makeTree()}
-function makeTree(){pts=[];let n=Math.min(4200,Math.max(1900,Math.floor(W*H/380)));for(let i=0;i<n;i++){let y=rnd(-1,1),r=(1-y)*.48*Math.sqrt(Math.random()),a=rnd(0,Math.PI*2),x=Math.cos(a)*r,z=Math.sin(a)*r,tw=Math.random()<.28;let q=rnd(0,Math.PI*2),sr=rnd(1,2.6);pts.push({x:x*(tw?1.12:1),y:y*1.52,z:z*(tw?1.12:1),sx:Math.cos(q)*sr,sy:rnd(-1.5,1.5),sz:Math.sin(q)*sr,size:rnd(.45,1.3),h:rnd(188,209),a:rnd(.35,.95),p:rnd(0,7),v:rnd(.5,1.7),gar:false})}for(let i=0;i<600;i++){let u=i/600,a=u*Math.PI*2*7.2,y=.92-u*1.82,r=(1-u)*.5,x=Math.cos(a)*r,z=Math.sin(a)*r;pts.push({x,y,z,sx:rnd(-2,2),sy:rnd(-1,2),sz:rnd(-2,2),size:rnd(.65,1.4),h:rnd(188,205),a:rnd(.55,1),p:rnd(0,7),v:rnd(.7,1.6),gar:true})}}
-function project(p){let c=Math.cos(rot),s=Math.sin(rot),x=p.x*c-p.z*s,z=p.x*s+p.z*c,dep=3.2+z,sc=Math.min(W,H)*.43/dep;return{x:W*.5+x*sc,y:H*.54+p.y*sc,sc,dep}}
-function bg(t){let g=ctx.createRadialGradient(W*.5,H*.45,0,W*.5,H*.45,Math.max(W,H)*.8);g.addColorStop(0,'#142e4b');g.addColorStop(.45,'#091a32');g.addColorStop(1,'#020714');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);for(let s of stars){ctx.fillStyle=`rgba(215,239,255,${s.a*(.7+.3*Math.sin(t*.001+s.p))})`;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,7);ctx.fill()}for(let f of snow){f.y+=f.v;f.x+=f.d+Math.sin(t*.0007+f.y*.01)*.1;if(f.y>H+4){f.y=-4;f.x=Math.random()*W}ctx.fillStyle=`rgba(218,239,255,${f.a})`;ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,7);ctx.fill()}}
-function orbit(t){ctx.save();ctx.translate(W*.5,H*.56);ctx.rotate(-.13+Math.sin(t*.0002)*.03);let r=Math.min(W,H)*.38;for(let i=0;i<3;i++){ctx.beginPath();ctx.ellipse(0,0,r*(1+i*.09),r*.27*(1+i*.13),i*.13,Math.PI*1.02,Math.PI*2.03);ctx.strokeStyle=`rgba(160,216,250,${.12-i*.025})`;ctx.lineWidth=i? .7:1;ctx.shadowColor='#8bdcff';ctx.shadowBlur=10;ctx.stroke()}ctx.restore();ctx.shadowBlur=0}
-function topper(t){let x=W*.5,y=H*.54-Math.min(W,H)*.43*.52,r=Math.min(W,H)*.023;let gr=ctx.createRadialGradient(x,y,0,x,y,r*5);gr.addColorStop(0,'#fff');gr.addColorStop(.2,'#bceeff88');gr.addColorStop(1,'#8bdcff00');ctx.fillStyle=gr;ctx.beginPath();ctx.arc(x,y,r*5,0,7);ctx.fill();ctx.save();ctx.translate(x,y);ctx.rotate(t*.00015);ctx.beginPath();for(let i=0;i<10;i++){let a=-Math.PI/2+i*Math.PI/5,rr=i%2?r*.35:r;ctx.lineTo(Math.cos(a)*rr,Math.sin(a)*rr)}ctx.closePath();ctx.fillStyle='#f2fcff';ctx.shadowColor='#b9edff';ctx.shadowBlur=20;ctx.fill();ctx.restore();ctx.shadowBlur=0}
-function frame(t){spread+=(targetSpread-spread)*.055;rot+=(targetRot-rot)*.045;bg(t);orbit(t);let list=[];for(let p of pts){let w=Math.sin(t*.001*p.v+p.p)*.012,x=p.x+(p.sx-p.x)*spread,y=p.y+(p.sy-p.y)*spread,z=p.z+(p.sz-p.z)*spread;list.push({p,q:project({x:x+w,y,z:z+w}),tw:Math.sin(t*.0014*p.v+p.p)})}list.sort((a,b)=>b.q.dep-a.q.dep);for(let o of list){let p=o.p,q=o.q;ctx.fillStyle=`hsla(${p.h},${p.gar?92:74}%,${p.gar?90:82}%,${p.a*(.76+.24*o.tw)})`;ctx.shadowColor='#bdeaff';ctx.shadowBlur=p.gar?8:4;ctx.beginPath();ctx.arc(q.x,q.y,Math.max(.35,p.size*q.sc*.012),0,7);ctx.fill()}ctx.shadowBlur=0;topper(t);requestAnimationFrame(frame)}
-function setSpread(v){targetSpread=v;say(v?'星光正在向宇宙散开':'星光正在重新聚合')}
-$('scatter').onclick=()=>setSpread(1);$('gather').onclick=()=>setSpread(0);$('reset').onclick=()=>{targetRot=0;rot=0;setSpread(0);toast('视角已重置')};
-canvas.addEventListener('pointerdown',e=>{drag=true;lastX=e.clientX;canvas.setPointerCapture(e.pointerId)});canvas.addEventListener('pointermove',e=>{if(drag){targetRot+=(e.clientX-lastX)*.006;lastX=e.clientX}});canvas.addEventListener('pointerup',()=>drag=false);canvas.addEventListener('pointercancel',()=>drag=false);
-const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
-function onHand(res){let lm=res.landmarks&&res.landmarks[0];if(!lm)return;let pinch=dist(lm[4],lm[8])<.055,up=[lm[8].y<lm[6].y,lm[12].y<lm[10].y,lm[16].y<lm[14].y,lm[20].y<lm[18].y].filter(Boolean).length>=3;targetRot=(.5-lm[9].x)*1.9;if(pinch){setSpread(0);$('camLabel').textContent='捏合 · 聚合成树'}else if(up){setSpread(1);$('camLabel').textContent='张开手掌 · 星光散开'}else $('camLabel').textContent='移动手掌 · 旋转圣诞树'}
-async function runTracking(){if(!active||!tracker)return;if(video.currentTime!==lastVideo){lastVideo=video.currentTime;onHand(tracker.detectForVideo(video,performance.now()))}requestAnimationFrame(runTracking)}
-async function startCamera(){let b=$('cameraBtn');b.disabled=true;b.textContent='正在启动…';say('正在加载手势识别…');try{const mp=await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14');const vision=await mp.FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm');tracker=await mp.HandLandmarker.createFromOptions(vision,{baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',delegate:'GPU'},runningMode:'VIDEO',numHands:1});stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:640},height:{ideal:480}},audio:false});video.srcObject=stream;await video.play();active=true;$('cameraBox').classList.add('show');b.disabled=false;b.textContent='关闭手势';say('手势已开启：张手散开 · 捏合聚合 · 左右移动旋转');requestAnimationFrame(runTracking)}catch(e){console.error(e);if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;b.disabled=false;b.textContent='重试开启手势';say('手势启动失败；请检查摄像头权限和网络，鼠标控制仍可用');toast(e.name==='NotAllowedError'?'请在 Chrome 地址栏允许摄像头权限':'模型加载失败，请检查网络后重试')}}
-function stopCamera(){active=false;if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;video.srcObject=null;$('cameraBox').classList.remove('show');$('cameraBtn').textContent='开启手势';setSpread(0);say('手势已关闭 · 可拖动鼠标旋转')}
-$('cameraBtn').onclick=()=>active?stopCamera():startCamera();
-addEventListener('resize',resize);resize();requestAnimationFrame(frame);
-</script></body></html>
+const video=$('camera');
+let W=0,H=0,DPR=1,tree=[],orbits=[],dust=[],stars=[],snow=[];
+let rotation=0,targetRotation=0,spread=0,targetSpread=0,dragging=false,lastX=0;
+let handLandmarker=null,cameraStream=null,tracking=false,lastVideoTime=-1,frameHandle=0;
+const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const rand=(a,b)=>a+Math.random()*(b-a);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function toast(message){const el=$('toast');el.textContent=message;el.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove('show'),2800)}
+function setStatus(message,visible=true){$('status').textContent=message;$('status').classList.toggle('show',visible)}
+function resize(){
+  W=innerWidth;H=innerHeight;DPR=Math.min(2,Math.max(1,window.devicePixelRatio||1));
+  canvas.width=Math.round(W*DPR);canvas.height=Math.round(H*DPR);canvas.style.width=W+'px';canvas.style.height=H+'px';ctx.setTransform(DPR,0,0,DPR,0,0);
+  makeAtmosphere();makeTree();makeOrbit();
+}
+function makeAtmosphere(){
+  const count=Math.round(clamp(W*H/5000,90,320));
+  stars=Array.from({length:count},()=>({x:rand(0,W),y:rand(0,H),r:rand(.35,1.25),a:rand(.16,.76),phase:rand(0,Math.PI*2),speed:rand(.3,1.2)}));
+  snow=Array.from({length:Math.round(clamp(W/9,35,115))},()=>({x:rand(0,W),y:rand(0,H),r:rand(.35,1.1),v:rand(.08,.32),drift:rand(-.13,.13),a:rand(.12,.42)}));
+}
+function makeTree(){
+  tree=[];
+  const count=Math.round(clamp(W*H/118,6200,11200));
+  for(let i=0;i<count;i++){
+    const surface=i%5!==0;
+    const h=surface?rand(.035,1):Math.cbrt(Math.random());
+    const maxR=.79*Math.pow(h,.92);
+    const radial=surface?rand(.78,1.015):Math.sqrt(Math.random())*.94;
+    const angle=rand(0,Math.PI*2);
+    const r=maxR*radial;
+    const y=-1.12+h*2.08;
+    tree.push({x:Math.cos(angle)*r,y,z:Math.sin(angle)*r,r,angle,h,
+      scatterX:rand(-2.5,2.5),scatterY:rand(-1.6,1.8),scatterZ:rand(-2.5,2.5),
+      size:surface?rand(.42,1.2):rand(.34,.95),hue:rand(188,207),alpha:rand(.34,.92),
+      phase:rand(0,Math.PI*2),speed:rand(.55,1.7),spark:Math.random()<.075,surface});
+  }
+  // Bright, delicate spiral strands give the cone a layered, flowing silhouette.
+  for(let strand=0;strand<7;strand++){
+    const n=260;
+    for(let j=0;j<n;j++){
+      const h=.04+.94*j/(n-1),angle=j/(n-1)*Math.PI*2*2.2+strand*Math.PI*2/7;
+      const r=.79*Math.pow(h,.92)*(1+.012*Math.sin(j*.12+strand));
+      tree.push({x:Math.cos(angle)*r,y:-1.12+h*2.08,z:Math.sin(angle)*r,r,angle,h,
+        scatterX:rand(-2,2),scatterY:rand(-1.5,1.5),scatterZ:rand(-2,2),
+        size:rand(.55,1.05),hue:rand(190,207),alpha:rand(.48,.95),phase:rand(0,7),speed:rand(.8,1.5),spark:Math.random()<.12,surface:true});
+    }
+  }
+}
+function makeOrbit(){
+  orbits=[];dust=[];
+  const ringDefs=[{rx:.48,ry:.105,n:1450,phase:.0},{rx:.61,ry:.14,n:1650,phase:1.3},{rx:.76,ry:.19,n:1850,phase:2.2},{rx:.9,ry:.225,n:1750,phase:3.5}];
+  for(let k=0;k<ringDefs.length;k++){
+    const def=ringDefs[k];
+    for(let i=0;i<def.n;i++){
+      const a=rand(0,Math.PI*2),jitter=rand(-.018,.018);
+      const wave=Math.sin(a*2+def.phase)*.012+Math.sin(a*5+def.phase)*.004;
+      orbits.push({a,r:1+jitter+wave,rx:def.rx,ry:def.ry,phase:def.phase,
+        size:rand(.42,1.3),alpha:rand(.2,.68),hue:rand(188,211),speed:rand(.000025,.00011),
+        spark:Math.random()<.045,depth:Math.sin(a)});
+    }
+  }
+  // A loose multi-turn spiral crosses the inner rings, echoing the swirling dust at the tree's foot.
+  for(let i=0;i<1900;i++){const u=i/1900,a=u*Math.PI*2*2.65+rand(-.035,.035),r=.16+.88*u;orbits.push({a,r,rx:.54,ry:.125,phase:1.8,size:rand(.38,1.05),alpha:rand(.16,.52),hue:rand(190,211),speed:rand(.000035,.00009),spark:Math.random()<.035,depth:Math.sin(a)});}
+  for(let i=0;i<620;i++){const a=rand(0,Math.PI*2);orbits.push({a,r:rand(.88,1.12),rx:.19,ry:.085,phase:2.8,size:rand(.35,1.05),alpha:rand(.18,.58),hue:rand(190,210),speed:rand(.00004,.00012),spark:Math.random()<.04,depth:Math.sin(a)});}
+  const dustCount=Math.round(clamp(W*H/420,1200,3000));
+  for(let i=0;i<dustCount;i++){
+    const a=rand(0,Math.PI*2),r=rand(.38,.98);
+    dust.push({a,r,rx:.9,ry:.225,size:rand(.3,1.0),alpha:rand(.065,.27),hue:rand(188,210),phase:rand(0,7),speed:rand(.000015,.00006)});
+  }
+}
+function project(x,y,z){
+  const c=Math.cos(rotation),s=Math.sin(rotation);
+  const xr=x*c-z*s,zr=x*s+z*c;
+  const depth=4.15+zr;
+  const scale=Math.min(W,H)*.82/depth;
+  return {x:W*.5+xr*scale,y:H*.475+y*scale,z:zr,scale,depth};
+}
+function drawBackground(t){
+  const g=ctx.createRadialGradient(W*.5,H*.47,0,W*.5,H*.47,Math.max(W,H)*.78);
+  g.addColorStop(0,'#101e3c');g.addColorStop(.42,'#09142d');g.addColorStop(1,'#010611');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  for(const s of stars){const alpha=s.a*(.72+.28*Math.sin(t*.001*s.speed+s.phase));ctx.fillStyle=`rgba(215,238,255,${alpha})`;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();}
+  for(const f of snow){f.y+=f.v;f.x+=f.drift+Math.sin(t*.00045+f.y*.009)*.08;if(f.y>H+3){f.y=-3;f.x=rand(0,W);}ctx.fillStyle=`rgba(215,238,255,${f.a})`;ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,Math.PI*2);ctx.fill();}
+}
+function drawOrbit(t){
+  const cx=W*.5,cy=H*.695,base=Math.min(W*.52,H*.92);
+  // Faint continuous orbital haze, like wide milky-way bands beneath the tree.
+  ctx.save();ctx.globalCompositeOperation='source-over';
+  for(let k=0;k<4;k++){
+    const rx=base*(.48+k*.15),ry=base*(.105+k*.038);
+    ctx.beginPath();ctx.ellipse(cx,cy,rx,ry,-.025+k*.012,Math.PI*1.02,Math.PI*2.02);
+    ctx.strokeStyle=`rgba(137,199,241,${.075-k*.009})`;ctx.lineWidth=2.5+k*.7;ctx.shadowColor='#8bcfff';ctx.shadowBlur=15;ctx.stroke();
+  }
+  ctx.restore();ctx.shadowBlur=0;
+  const items=[];
+  for(const p of orbits){const a=p.a+t*p.speed*(p.depth<0?-1:1)+rotation*.12;const rx=base*p.rx,ry=base*p.ry;const x=cx+Math.cos(a)*rx*p.r;const y=cy+Math.sin(a)*ry*p.r;items.push({x,y,z:Math.sin(a),p,tw:Math.sin(t*.0012+p.phase+a*2)});}
+  for(const p of dust){const a=p.a+t*p.speed+rotation*.12;const x=cx+Math.cos(a)*base*p.rx*p.r;const y=cy+Math.sin(a)*base*p.ry*p.r;items.push({x,y,z:Math.sin(a)*.7,p,tw:Math.sin(t*.0008+p.phase)});}
+  items.sort((a,b)=>a.z-b.z);
+  for(const q of items){const p=q.p;const alpha=p.alpha*(.72+.28*q.tw);ctx.fillStyle=`hsla(${p.hue},78%,${p.spark?91:82}%,${alpha})`;ctx.beginPath();ctx.arc(q.x,q.y,p.size*(p.spark?1.35:1),0,Math.PI*2);ctx.fill();if(p.spark){ctx.fillStyle=`rgba(207,241,255,${alpha*.2})`;ctx.beginPath();ctx.arc(q.x,q.y,3.2,0,Math.PI*2);ctx.fill();}}
+}
+function drawTree(t){
+  const halo=ctx.createRadialGradient(W*.5,H*.51,Math.min(W,H)*.035,W*.5,H*.51,Math.min(W,H)*.38);halo.addColorStop(0,'rgba(176,229,255,.13)');halo.addColorStop(.34,'rgba(119,194,241,.07)');halo.addColorStop(1,'rgba(58,121,181,0)');ctx.fillStyle=halo;ctx.fillRect(W*.5-Math.min(W,H)*.4,H*.18,Math.min(W,H)*.8,H*.62);
+  const items=[];
+  for(const p of tree){
+    const swirl=t*.000045*p.speed;
+    const angle=p.angle+rotation+swirl+Math.sin(t*.0008+p.phase)*.006;
+    const wobble=1+Math.sin(t*.0011*p.speed+p.phase)*.009;
+    const r=p.r*wobble;
+    const x=Math.cos(angle)*r+(p.scatterX-p.x)*spread;
+    const y=p.y+(p.scatterY-p.y)*spread;
+    const z=Math.sin(angle)*r+(p.scatterZ-p.z)*spread;
+    const q=project(x,y,z);
+    const tw=.68+.32*Math.sin(t*.0013*p.speed+p.phase);
+    items.push({p,q,tw});
+  }
+  items.sort((a,b)=>b.q.depth-a.q.depth);
+  ctx.save();ctx.globalCompositeOperation='source-over';
+  for(const o of items){
+    const p=o.p,q=o.q;const alpha=p.alpha*o.tw*(p.surface?1:.78);
+    const radius=p.size*(.62+q.scale/(Math.min(W,H)*.82)*.45);
+    ctx.fillStyle=`hsla(${p.hue},82%,${p.spark?96:86}%,${alpha})`;
+    ctx.beginPath();ctx.arc(q.x,q.y,Math.max(.34,radius),0,Math.PI*2);ctx.fill();
+    if(p.spark){ctx.fillStyle=`rgba(224,248,255,${alpha*.24})`;ctx.beginPath();ctx.arc(q.x,q.y,radius*2.8,0,Math.PI*2);ctx.fill();}
+  }
+  ctx.restore();
+}
+function drawTopStar(t){
+  const p=project(0,-1.18,0),x=p.x,y=p.y-2.5,r=Math.min(W,H)*.024;
+  ctx.save();ctx.globalCompositeOperation='source-over';
+  const glow=ctx.createRadialGradient(x,y,0,x,y,r*5.2);glow.addColorStop(0,'rgba(255,255,255,.96)');glow.addColorStop(.16,'rgba(218,247,255,.7)');glow.addColorStop(.42,'rgba(128,208,255,.2)');glow.addColorStop(1,'rgba(90,174,245,0)');ctx.fillStyle=glow;ctx.beginPath();ctx.arc(x,y,r*5.2,0,Math.PI*2);ctx.fill();
+  ctx.translate(x,y);ctx.rotate(t*.00008);
+  for(let i=0;i<8;i++){const a=i*Math.PI/4;const len=i%2===0?r*2.8:r*1.55;ctx.strokeStyle=`rgba(228,249,255,${i%2===0?.9:.55})`;ctx.lineWidth=i%2===0?1.2:.7;ctx.beginPath();ctx.moveTo(-Math.cos(a)*len,-Math.sin(a)*len);ctx.lineTo(Math.cos(a)*len,Math.sin(a)*len);ctx.stroke();}
+  ctx.beginPath();for(let i=0;i<12;i++){const a=-Math.PI/2+i*Math.PI/6,rr=i%2===0?r:r*.28;const xx=Math.cos(a)*rr,yy=Math.sin(a)*rr;i?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy);}ctx.closePath();ctx.fillStyle='#f8fdff';ctx.shadowColor='#c8f1ff';ctx.shadowBlur=24;ctx.fill();ctx.restore();ctx.shadowBlur=0;
+}
+function render(t){
+  spread+=(targetSpread-spread)*.045;rotation+=(targetRotation-rotation)*.035;
+  drawBackground(t);drawOrbit(t);drawTree(t);drawTopStar(t);
+  frameHandle=requestAnimationFrame(render);
+}
+function setSpread(value){targetSpread=value;setStatus(value?'星尘正在散向星空':'星尘正在聚合成树',true);}
+$('scatterButton').addEventListener('click',()=>setSpread(1));
+$('gatherButton').addEventListener('click',()=>setSpread(0));
+canvas.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX;canvas.setPointerCapture(e.pointerId);});
+canvas.addEventListener('pointermove',e=>{if(!dragging)return;const dx=e.clientX-lastX;lastX=e.clientX;targetRotation+=dx*.0045;});
+canvas.addEventListener('pointerup',()=>dragging=false);canvas.addEventListener('pointercancel',()=>dragging=false);
+function distance(a,b){return Math.hypot(a.x-b.x,a.y-b.y);}
+function onHand(result){
+  const lm=result.landmarks&&result.landmarks[0];if(!lm)return;
+  const pinch=distance(lm[4],lm[8])<.052;
+  const open=[lm[8].y<lm[6].y,lm[12].y<lm[10].y,lm[16].y<lm[14].y,lm[20].y<lm[18].y].filter(Boolean).length>=3;
+  targetRotation=(.5-lm[9].x)*2.1;
+  if(pinch){targetSpread=0;$('cameraCaption').textContent='捏合 · 星尘聚合';setStatus('捏合手指：星尘聚合成树',true);}
+  else if(open){targetSpread=1;$('cameraCaption').textContent='张开手掌 · 星尘散开';setStatus('张开手掌：星尘向外散开',true);}
+  else{$('cameraCaption').textContent='左右移动 · 旋转';}
+}
+async function withTimeout(promise,ms,label){let timer;try{return await Promise.race([promise,new Promise((_,reject)=>timer=setTimeout(()=>reject(new Error(label)),ms))]);}finally{clearTimeout(timer);}}
+async function enableHand(){
+  const button=$('handButton');button.disabled=true;button.classList.add('active');setStatus('正在连接摄像头与手势识别…',true);
+  try{
+    if(!navigator.mediaDevices?.getUserMedia)throw new Error('此页面无法访问摄像头，请使用 HTTPS 的 Chrome。');
+    cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:640},height:{ideal:480}},audio:false});
+    video.srcObject=cameraStream;await video.play();
+    const mp=await withTimeout(import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14'),20000,'手势识别组件加载超时');
+    const vision=await withTimeout(mp.FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm'),20000,'手势模型加载超时');
+    handLandmarker=await withTimeout(mp.HandLandmarker.createFromOptions(vision,{baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',delegate:'GPU'},runningMode:'VIDEO',numHands:1}),25000,'手势模型初始化超时');
+    tracking=true;$('cameraBox').classList.add('show');button.textContent='×';button.disabled=false;setStatus('张开手掌：星尘散开　·　拇指食指捏合：聚合　·　左右移动：旋转',true);requestAnimationFrame(trackHands);
+  }catch(error){console.error(error);if(cameraStream)cameraStream.getTracks().forEach(track=>track.stop());cameraStream=null;video.srcObject=null;button.disabled=false;button.classList.remove('active');button.textContent='✋';setStatus('手势未启动；可以拖动旋转，或检查摄像头权限后重试',true);toast(error.name==='NotAllowedError'?'请在 Chrome 地址栏允许摄像头权限':error.message||'手势识别启动失败');}
+}
+function trackHands(){if(!tracking||!handLandmarker)return;if(video.currentTime!==lastVideoTime){lastVideoTime=video.currentTime;const result=handLandmarker.detectForVideo(video,performance.now());if(result.landmarks?.length)onHand(result);}requestAnimationFrame(trackHands);}
+function disableHand(){tracking=false;if(cameraStream)cameraStream.getTracks().forEach(track=>track.stop());cameraStream=null;video.srcObject=null;$('cameraBox').classList.remove('show');const button=$('handButton');button.textContent='✋';button.classList.remove('active');button.disabled=false;targetSpread=0;setStatus('手势已关闭 · 拖动屏幕可旋转星尘圣诞树',true);}
+$('handButton').addEventListener('click',()=>tracking?disableHand():enableHand());
+$('musicButton').addEventListener('click',()=>window.open('https://163cn.tv/blhNxDl5','_blank','noopener'));
+window.addEventListener('resize',resize);
+window.addEventListener('beforeunload',()=>{if(cameraStream)cameraStream.getTracks().forEach(track=>track.stop());cancelAnimationFrame(frameHandle);});
+resize();requestAnimationFrame(render);
+})();
+</script>
+</body>
+</html>
